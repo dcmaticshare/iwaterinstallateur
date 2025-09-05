@@ -35,6 +35,7 @@
 
     --container:1400px;          /* shared max width */
     --gutter:24px;               /* shared side padding */
+    --sidebar-blue-dark: #05265a; /* start color of the sidebar gradient */
   }
 
   *{box-sizing:border-box}
@@ -179,9 +180,31 @@
 
   /* KPIs & Cards */
   .kpis{display:grid; grid-template-columns:repeat(4, minmax(200px,1fr)); gap:16px; margin-bottom:18px}
-  .kpi{background:var(--bg-1); border-radius:var(--radius-xl); box-shadow:var(--shadow); padding:16px 18px; border:1px solid var(--line)}
-  .kpi h3{margin:0 0 6px; font-size:.95rem; font-weight:600; color:var(--text-500)}
-  .kpi strong{font-size:1.9rem; color:var(--text-900)}
+  .kpi{
+    background:var(--bg-1); border-radius:var(--radius-xl); box-shadow:var(--shadow);
+    padding:16px 18px; border:1px solid var(--line);
+  }
+  .kpi h3{margin:0; font-size:.95rem; font-weight:600; color:var(--text-500)}
+  .kpi strong{font-size:1.9rem; color:var(--text-900); display:block; margin-top:6px}
+
+  /* Icon header in KPI cards */
+  .kpi-top{display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .kpi-icon{
+    width:32px; height:32px; min-width:32px; display:grid; place-items:center;
+    border-radius:10px; background:#f0f8ff; border:1px solid #d8ecf7; color:#0b4bab;
+  }
+  .kpi-icon svg{width:18px; height:18px; display:block}
+
+  /* Make KPI cards behave like buttons when clickable */
+  .kpi.clickable{cursor:pointer; user-select:none; transition:transform .05s ease, box-shadow .05s ease, border-color .05s ease}
+  .kpi.clickable:hover{transform:translateY(-1px); box-shadow:0 12px 24px rgba(16,149,189,.12)}
+  .kpi.clickable:active{transform:translateY(0)}
+  /* Selected KPI (status) card — thicker, dark blue border */
+	.kpi.active{
+	  border: 2px solid var(--sidebar-blue-dark);
+	  box-shadow: 0 12px 28px rgba(5, 38, 90, .18); /* subtle lift in the same hue */
+	}
+
 
   .cards{
     display:grid; grid-template-columns:repeat(auto-fit, minmax(340px, 1fr));
@@ -258,7 +281,6 @@
 
   /* Off‑canvas drawer (phones only) */
   aside.sidebar{
-    /* keep it in the DOM but move it off-screen until opened */
     transform: translateX(-100%);
     transition: transform .28s ease, box-shadow .28s ease;
     will-change: transform;
@@ -269,26 +291,23 @@
     box-shadow: 24px 0 40px rgba(9,30,66,.18);
   }
 
-  /* content should not be shifted on phones */
   main{ margin-left: 0; }
 
-  /* Dim the page behind the drawer */
   .scrim{
     position: fixed;
-    inset: var(--header-h) 0 0 0;   /* don’t cover the header */
+    inset: var(--header-h) 0 0 0;
     background: rgba(4,10,20,.36);
     backdrop-filter: blur(1px);
     opacity: 0;
     pointer-events: none;
     transition: opacity .2s ease;
-    z-index: 95; /* below the sidebar (96) */
+    z-index: 95;
   }
   body.side-open .scrim{
     opacity: 1;
     pointer-events: auto;
   }
 
-  /* Prevent background scroll when drawer is open */
   body.side-open{ overflow: hidden; }
 }
 
@@ -306,53 +325,18 @@
   }
 
   /* === Header adjustments: larger logo + centered, narrower search === */
-	header .header-inner{
-	  position: relative;          /* enables absolute centering of search */
-	}
-
-	/* Bigger logo (adjust if you want even larger) */
-	header .brand img{
-	  height: 50px;                /* was 28px */
-	}
-
-	/* Centered, narrower search on desktop */
+	header .header-inner{ position: relative; }
+	header .brand img{ height: 50px; }
 	header .search{
-	  position: absolute;
-	  top: 50%;
-	  left: 50%;
-	  transform: translate(-50%, -50%);
-	  /* Keep it slim and avoid overlap with left/right controls */
-	  width: min(520px, calc(100% - 420px));
-	  flex: 0 0 auto;              /* override earlier flex:1 */
-	  margin-left: 0;              /* override earlier 8px */
-	  z-index: 2;
+	  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+	  width: min(520px, calc(100% - 420px)); flex: 0 0 auto; margin-left: 0; z-index: 2;
 	}
-
-	/* On smaller screens, revert to normal inline layout */
 	@media (max-width: 880px){
-	  header .search{
-	    position: static;
-	    transform: none;
-	    width: auto;
-	    flex: 1 1 auto;            /* fill available space nicely */
-	    margin-left: 8px;          /* restore small left gap */
-	  }
+	  header .search{ position: static; transform: none; width: auto; flex: 1 1 auto; margin-left: 8px; }
 	}
-
-	/* Dock the action buttons (refresh + user) to the right edge */
-	header .header-inner > .icon-btn:first-of-type{
-	  margin-left: auto;   /* pushes this button and everything after it to the right */
-	}
-
-	/* Push the action buttons (Refresh + User) to the right side */
-	header .header-inner > .search + .icon-btn {
-	  margin-left: auto;
-	}
-
-	/* (Optional) remove the previous :first-of-type rule if present */
+	header .header-inner > .icon-btn:first-of-type{ margin-left: auto; }
+	header .header-inner > .search + .icon-btn { margin-left: auto; }
 	header .header-inner > .icon-btn:first-of-type { margin-left: 0; }
-
-
 </style>
 </head>
 <body>
@@ -392,8 +376,7 @@
   </div>
 
   <!-- ===== SIDEBAR – tablet & mobile ===== -->
-  <!-- Scrim for mobile drawer -->
-<div class="scrim" id="scrim" hidden></div>
+  <div class="scrim" id="scrim" hidden></div>
   <aside class="sidebar" id="sidebar">
     <nav class="side-links" aria-label="Mobiel/Tablet">
       <a href="#/dashboard" data-route="dashboard" class="active">
@@ -450,7 +433,6 @@
 <script>
 /* =================== DATA (mock) =================== */
 const Demo = (() => {
-  // Belgische adressen (voorbeeld)
   const addressesBE = [
     'Meir 50, 2000 Antwerpen',
     'Korenmarkt 3, 9000 Gent',
@@ -487,7 +469,6 @@ const Demo = (() => {
       firmware: `v${1+Math.floor(i%2)}.${2+Math.floor(Math.random()*8)}.${Math.floor(Math.random()*10)}`,
       installedOn: new Date(Date.now() - (20+i)*864e5).toISOString(),
       customerId: i%4===0 ? 'cst-001' : (i%5===0 ? 'cst-002' : (i%7===0 ? 'cst-003' : null)),
-      // Locatie = Belgisch adres
       location: addressesBE[i % addressesBE.length],
       status,
       lastSeen: new Date(Date.now() - Math.floor(Math.random()*12)*36e5).toISOString(),
@@ -500,7 +481,7 @@ const Demo = (() => {
   const severity = ['critical','warning','info'];
   const messages = [
     'pH buiten bereik',
-    'ORP laag – controleer chloordosering',
+    'ALK laag – controleer chloordosering',
     'Kalibratie van sonde nodig',
     'Geen data (meter offline)',
     'Hoge temperatuur'
@@ -536,6 +517,12 @@ const State = {
 }
 let db = State.load();
 
+/* ====== UI (runtime) STATE – not persisted ====== */
+/* Start with 'Risico' selected */
+const UIState = {
+  dashboardStatus: 'alert'   // 'online' | 'alert' | 'offline' | null
+};
+
 /* =================== UTIL =================== */
 const fmt = {
   date(iso){ const d = new Date(iso); return d.toLocaleString('nl-BE'); },
@@ -559,7 +546,31 @@ const fmt = {
     const t = s==='critical'?'Kritiek':(s==='warning'?'Waarschuwing':'Info');
     const c = s==='critical'?'danger':(s==='warning'?'warn':'');
     return `<span class="chip ${c}">${t}</span>`;
+  },
+  statusLabel(s){
+    return s==='online' ? 'Online' : s==='alert' ? 'Risico' : s==='offline' ? 'Offline' : '';
   }
+};
+
+/* Small inline SVG icon helpers */
+const Icons = {
+  total: `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/>
+      <rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>
+    </svg>`,
+  online: `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`,
+  alert: `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <path d="M12 9v4m0 4h.01M2 21h20L12 3 2 21z" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`,
+  offline: `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`
 };
 
 /* =================== ROUTER =================== */
@@ -572,7 +583,6 @@ const Router = {
       const path = location.hash.replace('#','') || '/dashboard';
       const [base, param] = path.split('/').filter(Boolean);
 
-      // Active states for tabs + sidebar
       document.querySelectorAll('.tabs a, .side-links a').forEach(a=>{
         a.classList.toggle('active', a.getAttribute('href') === `#/${base}`);
       });
@@ -593,25 +603,63 @@ const Views = {
     const offline = db.devices.filter(d=>d.status==='offline').length;
     const atRisk = db.devices.filter(d=>d.status==='alert').length;
 
+    const filter = UIState.dashboardStatus; // null | 'online' | 'alert' | 'offline'
+    const filtered = filter ? db.devices.filter(d=>d.status===filter) : db.devices;
+    const pressed = s => String(filter===s);
+
     el.innerHTML = `
       <div class="toolbar">
         <h1 data-accent>Overzicht meters</h1>
-        <span class="help">Overzicht van alle geïnstalleerde meters.</span>
+        <span class="help">Overzicht van alle geïnstalleerde meters.${filter ? ` (Gefilterd op: <strong>${fmt.statusLabel(filter)}</strong>)` : ''}</span>
         <div style="flex:1"></div>
         <button class="btn" onclick="Router.go('#/devices')">Meters toevoegen / beheren</button>
       </div>
 
       <section class="kpis">
-        <div class="kpi"><h3>Totaal aantal meters</h3><strong>${db.devices.length}</strong></div>
-        <div class="kpi"><h3>Online</h3><strong>${online}</strong></div>
-        <div class="kpi"><h3>Risico</h3><strong>${atRisk}</strong></div>
-        <div class="kpi"><h3>Offline</h3><strong>${offline}</strong></div>
+        <div class="kpi">
+          <div class="kpi-top">
+            <h3>Totaal aantal meters</h3>
+            <span class="kpi-icon" aria-hidden="true">${Icons.total}</span>
+          </div>
+          <strong>${db.devices.length}</strong>
+        </div>
+
+        <!-- Clickable KPI tiles act as filter buttons (Online / Risico / Offline) -->
+        <div class="kpi clickable ${filter==='online'?'active':''}" role="button" tabindex="0" title="Filter op Online"
+             onclick="UI.setDashboardStatus('online')" onkeydown="if(event.key==='Enter') UI.setDashboardStatus('online')" aria-pressed="${pressed('online')}">
+          <div class="kpi-top">
+            <h3>Online</h3>
+            <span class="kpi-icon" aria-hidden="true">${Icons.online}</span>
+          </div>
+          <strong>${online}</strong>
+        </div>
+
+        <div class="kpi clickable ${filter==='alert'?'active':''}" role="button" tabindex="0" title="Filter op Risico"
+             onclick="UI.setDashboardStatus('alert')" onkeydown="if(event.key==='Enter') UI.setDashboardStatus('alert')" aria-pressed="${pressed('alert')}">
+          <div class="kpi-top">
+            <h3>Risico</h3>
+            <span class="kpi-icon" aria-hidden="true">${Icons.alert}</span>
+          </div>
+          <strong>${atRisk}</strong>
+        </div>
+
+        <div class="kpi clickable ${filter==='offline'?'active':''}" role="button" tabindex="0" title="Filter op Offline"
+             onclick="UI.setDashboardStatus('offline')" onkeydown="if(event.key==='Enter') UI.setDashboardStatus('offline')" aria-pressed="${pressed('offline')}">
+          <div class="kpi-top">
+            <h3>Offline</h3>
+            <span class="kpi-icon" aria-hidden="true">${Icons.offline}</span>
+          </div>
+          <strong>${offline}</strong>
+        </div>
       </section>
 
       <section class="section">
-        <h2 data-accent>Meterstatus</h2>
+        <h2 data-accent>
+          Meterstatus
+          ${filter ? `${fmt.statusChip(filter)}` : ''}
+        </h2>
         <div class="cards">
-          ${db.devices.slice(0,12).map(d => Views.cardDevice(d)).join('')}
+          ${filtered.slice(0,12).map(d => Views.cardDevice(d)).join('')}
         </div>
       </section>
 
@@ -635,14 +683,15 @@ const Views = {
         <div class="help">Zoek, filter en open details. Klik op een kaart voor de meterpagina.</div>
         <div style="flex:1"></div>
         <button class="btn" onclick="Views._newDevice()">+ Meter registreren</button>
-        <button class="btn ghost" onclick="Views._toggleView(this)" data-mode="grid" title="Raster/Tabel wisselen">Raster</button>
+        <!-- Start label is 'Raster'; on click, de Tabel view verschijnt -->
+        <button class="btn ghost" onclick="Views._toggleView(this)" data-mode="grid" title="Raster/Tabel wisselen">Tabel</button>
       </div>
 
       <div id="deviceView" class="cards">${filtered.map(d => Views.cardDevice(d)).join('')}</div>
 
       <table id="deviceTable" class="list" style="display:none">
         <thead>
-          <tr><th>ID</th><th>Naam</th><th>Status</th><th>Klant</th><th>pH</th><th>ORP</th><th>Temp</th><th>Laatst gezien</th><th></th></tr>
+          <tr><th>ID</th><th>Naam</th><th>Status</th><th>Klant</th><th>pH</th><th>ALK</th><th>Temp</th><th>Laatst gezien</th><th></th></tr>
         </thead>
         <tbody>
           ${filtered.map(d => `
@@ -697,7 +746,7 @@ const Views = {
           <div class="title">Meterconditie</div>
           <div class="stats" style="margin-top:12px">
             <div class="stat"><h4>pH</h4><strong id="ph-${d.id}">${d.metrics.pH}</strong></div>
-            <div class="stat"><h4>ORP</h4><strong id="orp-${d.id}">${d.metrics.ORP}</strong></div>
+            <div class="stat"><h4>ALK</h4><strong id="orp-${d.id}">${d.metrics.ORP}</strong></div>
             <div class="stat"><h4>Temperatuur</h4><strong id="tmp-${d.id}">${d.metrics.temp} °C</strong></div>
           </div>
         </div>
@@ -762,7 +811,7 @@ const Views = {
         </div>
         <div class="stats">
           <div class="stat"><h4>pH</h4><strong>${d.metrics.pH}</strong></div>
-          <div class="stat"><h4>ORP</h4><strong>${d.metrics.ORP}</strong></div>
+          <div class="stat"><h4>ALK</h4><strong>${d.metrics.ORP}</strong></div>
           <div class="stat"><h4>T</h4><strong>${d.metrics.temp}°C</strong></div>
         </div>
       </article>
@@ -779,7 +828,7 @@ const Views = {
         <tr>
           <td><strong>${a.id}</strong><div class="muted">${a.message}</div></td>
           <td>${fmt.sevChip(a.severity)}</td>
-          <td><a href="#/device/${encodeURIComponent(dev.id)}">${dev?.name || a.deviceId}</a></td>
+          <td><a href="#/device/${encodeURIComponent(dev?.id || a.deviceId)}">${dev?.name || a.deviceId}</a></td>
           <td>${fmt.rel(a.ts)}</td>
           <td>${a.acknowledged?'<span class="chip success">Bevestigd</span>':'<span class="chip warn">Open</span>'}</td>
           <td class="row-actions">
@@ -806,16 +855,22 @@ const Views = {
   _allAlarms(){ return db.devices.flatMap(d => d.alarms.map(a=>({...a, deviceId:d.id }))) },
   _customerName(id){ return db.customers.find(c=>c.id===id)?.name || null; },
 
+  /* Toggle between Raster and Tabel views (starts on Raster) */
   _toggleView(btn){
-    const mode = btn.getAttribute('data-mode');
+    const mode = btn.getAttribute('data-mode'); // 'grid' or 'table'
     const grid = document.getElementById('deviceView');
     const table = document.getElementById('deviceTable');
+
     if(mode==='grid'){
-      btn.textContent = 'Tabel'; btn.setAttribute('data-mode','table');
-      grid.style.display='grid'; table.style.display='none';
+      grid.style.display='none';
+      table.style.display='';
+      btn.textContent = 'Raster';
+      btn.setAttribute('data-mode','table');
     }else{
-      btn.textContent = 'Raster'; btn.setAttribute('data-mode','grid');
-      grid.style.display='none'; table.style.display='';
+      grid.style.display='grid';
+      table.style.display='none';
+      btn.textContent = 'Tabel';
+      btn.setAttribute('data-mode','grid');
     }
   },
 
@@ -876,7 +931,7 @@ const Views = {
   }
 };
 
-/* =================== ASSIGN MODAL =================== */
+/* =================== ASSIGN MODAL & DASHBOARD FILTER =================== */
 const UI = {
   openAssignModal(customerId){
     const modal = document.getElementById('assignModal');
@@ -918,6 +973,17 @@ const UI = {
     State.save(db);
     UI.openAssignModal(cid);
     Router.go('#/customers');
+  },
+
+  /* Dashboard meterstatus filter (via KPI tiles) */
+  setDashboardStatus(status){
+    UIState.dashboardStatus = (UIState.dashboardStatus === status) ? null : status;
+    const hash = location.hash.replace('#','');
+    if(hash.startsWith('/dashboard') || !hash){
+      Views.dashboard(document.getElementById('view'));
+    }else{
+      Router.go('#/dashboard');
+    }
   }
 };
 
@@ -930,7 +996,7 @@ document.getElementById('refreshBtn').addEventListener('click', ()=>{
       d.alarms.push({
         id:`AL-${d.id}-${Math.ceil(Math.random()*99)}`,
         deviceId:d.id, severity: d.status==='offline'?'critical':'warning',
-        message: d.status==='offline'?'Geen data (offline)':'ORP laag',
+        message: d.status==='offline'?'Geen data (offline)':'ALK laag',
         ts:new Date().toISOString(), acknowledged:false
       });
     }
@@ -958,7 +1024,7 @@ document.getElementById('globalSearch').addEventListener('input', ()=>{
     if (scrim) scrim.hidden = true;
   };
   const openSidebar = () => {
-    if (!mqMobile.matches) return;           // only on phones
+    if (!mqMobile.matches) return;
     document.body.classList.add('side-open');
     navToggle?.setAttribute('aria-expanded','true');
     if (scrim) scrim.hidden = false;
@@ -970,11 +1036,9 @@ document.getElementById('globalSearch').addEventListener('input', ()=>{
   scrim?.addEventListener('click', closeSidebar);
   window.addEventListener('keydown', e => { if (e.key === 'Escape') closeSidebar(); });
 
-  // Close on navigation or when resizing out of the mobile breakpoint
   window.addEventListener('hashchange', closeSidebar);
   window.addEventListener('resize', () => { if (!mqMobile.matches) closeSidebar(); });
 
-  // Close when a link in the sidebar is clicked
   sidebar?.addEventListener('click', (e) => {
     if (e.target.closest('a')) closeSidebar();
   });
